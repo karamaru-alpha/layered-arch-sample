@@ -6,12 +6,11 @@ import (
 	ur "layered-arch-sample/pkg/infrastructure/mysql/repositoryimpl/user"
 	"layered-arch-sample/pkg/interfaces/api/dcontext"
 	uh "layered-arch-sample/pkg/interfaces/api/handler/user"
+	authMiddleware "layered-arch-sample/pkg/interfaces/api/middleware"
 	"layered-arch-sample/pkg/interfaces/api/myerror"
 	uu "layered-arch-sample/pkg/usecase/user"
 	"log"
 	"net/http"
-
-	authMiddleware "layered-arch-sample/pkg/interfaces/api/middleware"
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
@@ -42,6 +41,7 @@ func Serve(addr string) {
 
 	e.POST("/signup", userHandler.HandleCreate)
 	e.GET("/account", auth.Authenticate(userHandler.HandleGet))
+	e.PATCH("/account", auth.Authenticate(userHandler.HandleUpdate))
 
 	log.Println("Server running...")
 	if err := e.Start(addr); err != nil {
