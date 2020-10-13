@@ -10,6 +10,8 @@ import (
 	"log"
 	"net/http"
 
+	authMiddleware "layered-arch-sample/pkg/interfaces/api/middleware"
+
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 )
@@ -21,9 +23,10 @@ func Serve(addr string) {
 	userRepoImpl := ur.NewRepositoryImpl(mysql.Conn)
 	userUseCase := uu.NewUseCase(userRepoImpl)
 	userHandler := uh.NewHandler(userUseCase)
+	auth := authMiddleware.NewMiddleware(userUseCase)
 
 	echo.NotFoundHandler = func(c echo.Context) error {
-		return &myerror.NotFoundError{Err: fmt.Errorf("URL is invalid: (url=%s)", c.Request().URL)}
+		return &myerror.NotFoundError{Err: fmt.Errorf(`URL is invalid: (url="%s")`, c.Request().URL)}
 	}
 	e := echo.New()
 	e.Use(
@@ -37,6 +40,7 @@ func Serve(addr string) {
 	e.HTTPErrorHandler = errorHandler
 
 	e.POST("/signup", userHandler.HandleCreate)
+	e.GET("/account", auth.Authenticate(userHandler.HandleGet))
 
 	log.Println("Server running...")
 	if err := e.Start(addr); err != nil {
