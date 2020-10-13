@@ -2,6 +2,7 @@ package user
 
 import (
 	"database/sql"
+	um "layered-arch-sample/pkg/domain/model/user"
 	ur "layered-arch-sample/pkg/domain/repository/db/user"
 )
 
@@ -25,4 +26,21 @@ func (uri repositoryImpl) Create(ID, authToken, name string) error {
 
 	_, err = stmt.Exec(ID, authToken, name)
 	return err
+}
+
+// SelectByAuthToken auth_tokenを条件にUserを取得する
+func (uri repositoryImpl) SelectByAuthToken(authToken string) (*um.User, error) {
+	row := uri.db.QueryRow("SELECT * FROM users WHERE auth_token = ?", authToken)
+	return convertToUser(row)
+}
+
+func convertToUser(row *sql.Row) (*um.User, error) {
+	user := um.User{}
+	if err := row.Scan(&user.ID, &user.AuthToken, &user.Name); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &user, nil
 }

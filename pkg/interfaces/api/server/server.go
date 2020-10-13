@@ -4,11 +4,14 @@ import (
 	"fmt"
 	"layered-arch-sample/pkg/infrastructure/mysql"
 	ur "layered-arch-sample/pkg/infrastructure/mysql/repositoryimpl/user"
+	"layered-arch-sample/pkg/interfaces/api/dcontext"
 	uh "layered-arch-sample/pkg/interfaces/api/handler/user"
 	"layered-arch-sample/pkg/interfaces/api/myerror"
 	uu "layered-arch-sample/pkg/usecase/user"
 	"log"
 	"net/http"
+
+	authMiddleware "layered-arch-sample/pkg/interfaces/api/middleware"
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
@@ -21,9 +24,10 @@ func Serve(addr string) {
 	userRepoImpl := ur.NewRepositoryImpl(mysql.Conn)
 	userUseCase := uu.NewUseCase(userRepoImpl)
 	userHandler := uh.NewHandler(userUseCase)
+	auth := authMiddleware.NewMiddleware(userUseCase)
 
 	echo.NotFoundHandler = func(c echo.Context) error {
-		return &myerror.NotFoundError{Err: fmt.Errorf("URL is invalid: (url=%s)", c.Request().URL)}
+		return &myerror.NotFoundError{Err: fmt.Errorf(`URL is invalid: (url="%s")`, c.Request().URL)}
 	}
 	e := echo.New()
 	e.Use(
@@ -37,6 +41,7 @@ func Serve(addr string) {
 	e.HTTPErrorHandler = errorHandler
 
 	e.POST("/signup", userHandler.HandleCreate)
+	e.GET("/account", auth.Authenticate(userHandler.HandleGet))
 
 	log.Println("Server running...")
 	if err := e.Start(addr); err != nil {
@@ -49,10 +54,15 @@ func errorHandler(err error, c echo.Context) {
 		Message string `json:"message"`
 	}
 	var (
+		userID  string
 		code    int
 		msg     string
 		errInfo error
 	)
+
+	if user := dcontext.GetUserFromContext(c); user != nil {
+		userID = user.ID
+	}
 
 	switch e := err.(type) {
 	case *myerror.BadRequestError:
@@ -77,8 +87,7 @@ func errorHandler(err error, c echo.Context) {
 		errInfo = err
 	}
 
-	// Todo: 認証後はUserIDも表示
-	log.Printf(`access:"%s", errorCode:%d, errorMessage:"%s", error="%+v"`, c.Request().URL, code, msg, errInfo)
+	log.Printf(`access:"%s", userID:"%s", errorCode:%d, errorMessage:"%s", error="%+v"`, c.Request().URL, userID, code, msg, errInfo)
 
 	if !c.Response().Committed {
 		if err := c.JSON(code, &response{
