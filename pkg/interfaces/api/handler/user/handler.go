@@ -5,7 +5,7 @@ import (
 	"layered-arch-sample/pkg/constant"
 	um "layered-arch-sample/pkg/domain/model/user"
 	"layered-arch-sample/pkg/interfaces/api/myerror"
-	"layered-arch-sample/pkg/usecase/user"
+	uu "layered-arch-sample/pkg/usecase/user"
 	"net/http"
 
 	"github.com/labstack/echo"
@@ -18,13 +18,13 @@ type Handler interface {
 }
 
 type handler struct {
-	useCase user.UseCase
+	useCase uu.UseCase
 }
 
 // NewHandler Userデータに関するHandlerを生成
-func NewHandler(uu user.UseCase) Handler {
+func NewHandler(userUseCase uu.UseCase) Handler {
 	return &handler{
-		useCase: uu,
+		useCase: userUseCase,
 	}
 }
 

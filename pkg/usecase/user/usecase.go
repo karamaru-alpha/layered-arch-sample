@@ -16,9 +16,9 @@ type useCase struct {
 }
 
 // NewUseCase Userデータに関するユースケースを生成
-func NewUseCase(ur ur.Repository) UseCase {
+func NewUseCase(userRepo ur.Repository) UseCase {
 	return &useCase{
-		repository: ur,
+		repository: userRepo,
 	}
 }
 
