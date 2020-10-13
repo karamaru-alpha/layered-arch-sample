@@ -34,6 +34,16 @@ func (uri repositoryImpl) SelectByAuthToken(authToken string) (*um.User, error) 
 	return convertToUser(row)
 }
 
+// UpdateName ユーザーの名前を更新する
+func (uri repositoryImpl) UpdateName(record *um.User, name string) error {
+	stmt, err := uri.db.Prepare("UPDATE users SET name = ? WHERE id = ?")
+	if err != nil {
+		return err
+	}
+	_, err = stmt.Exec(name, record.ID)
+	return err
+}
+
 func convertToUser(row *sql.Row) (*um.User, error) {
 	user := um.User{}
 	if err := row.Scan(&user.ID, &user.AuthToken, &user.Name); err != nil {
