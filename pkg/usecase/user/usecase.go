@@ -1,6 +1,7 @@
 package user
 
 import (
+	um "layered-arch-sample/pkg/domain/model/user"
 	ur "layered-arch-sample/pkg/domain/repository/db/user"
 
 	"github.com/google/uuid"
@@ -9,6 +10,7 @@ import (
 // UseCase Userにおけるユースケースのインターフェース
 type UseCase interface {
 	Create(name string) (authToken string, err error)
+	SelectByAuthToken(authToken string) (user *um.User, err error)
 }
 
 type useCase struct {
@@ -38,4 +40,9 @@ func (uu useCase) Create(name string) (string, error) {
 	}
 
 	return authToken.String(), nil
+}
+
+// SelectByAuthToken Userをトークンから取得するためのユースケース
+func (uu useCase) SelectByAuthToken(authToken string) (*um.User, error) {
+	return uu.repository.SelectByAuthToken(authToken)
 }
