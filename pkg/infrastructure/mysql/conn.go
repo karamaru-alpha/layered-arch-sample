@@ -16,15 +16,10 @@ const driverName = "mysql"
 var Conn *sql.DB
 
 func init() {
-	// ユーザ
 	user := os.Getenv("MYSQL_USER")
-	// パスワード
 	password := os.Getenv("MYSQL_PASSWORD")
-	// 接続先ホスト
 	host := os.Getenv("MYSQL_HOST")
-	// 接続先ポート
 	port := os.Getenv("MYSQL_PORT")
-	// 接続先データベース
 	database := os.Getenv("MYSQL_DATABASE")
 
 	var err error
