@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"layered-arch-sample/pkg/infrastructure/mysql"
 	ur "layered-arch-sample/pkg/infrastructure/mysql/repositoryimpl/user"
+	"layered-arch-sample/pkg/interfaces/api/dcontext"
 	uh "layered-arch-sample/pkg/interfaces/api/handler/user"
 	"layered-arch-sample/pkg/interfaces/api/myerror"
 	uu "layered-arch-sample/pkg/usecase/user"
@@ -53,10 +54,15 @@ func errorHandler(err error, c echo.Context) {
 		Message string `json:"message"`
 	}
 	var (
+		userID  string
 		code    int
 		msg     string
 		errInfo error
 	)
+
+	if user := dcontext.GetUserFromContext(c); user != nil {
+		userID = user.ID
+	}
 
 	switch e := err.(type) {
 	case *myerror.BadRequestError:
@@ -81,8 +87,7 @@ func errorHandler(err error, c echo.Context) {
 		errInfo = err
 	}
 
-	// Todo: 認証後はUserIDも表示
-	log.Printf(`access:"%s", errorCode:%d, errorMessage:"%s", error="%+v"`, c.Request().URL, code, msg, errInfo)
+	log.Printf(`access:"%s", userID:"%s", errorCode:%d, errorMessage:"%s", error="%+v"`, c.Request().URL, userID, code, msg, errInfo)
 
 	if !c.Response().Committed {
 		if err := c.JSON(code, &response{
