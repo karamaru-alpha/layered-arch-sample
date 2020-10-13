@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"layered-arch-sample/pkg/constant"
 	um "layered-arch-sample/pkg/domain/model/user"
+	"layered-arch-sample/pkg/interfaces/api/dcontext"
 	"layered-arch-sample/pkg/interfaces/api/myerror"
 	uu "layered-arch-sample/pkg/usecase/user"
 	"net/http"
@@ -15,6 +16,7 @@ import (
 // Handler UserにおけるHandlerのインターフェース
 type Handler interface {
 	HandleCreate(c echo.Context) error
+	HandleGet(c echo.Context) error
 }
 
 type handler struct {
@@ -52,4 +54,18 @@ func (uh handler) HandleCreate(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, &response{Token: authToken})
+}
+
+// HandleGet ユーザー取得処理
+func (uh handler) HandleGet(c echo.Context) error {
+
+	user := dcontext.GetUserFromContext(c)
+	if user == nil {
+		return &myerror.UnauthorizedError{Err: errors.New("user not found")}
+	}
+
+	return c.JSON(http.StatusOK, &um.User{
+		ID:   user.ID,
+		Name: user.Name,
+	})
 }
