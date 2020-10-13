@@ -1,7 +1,12 @@
 package server
 
 import (
+	"fmt"
+	"layered-arch-sample/pkg/infrastructure/mysql"
+	ur "layered-arch-sample/pkg/infrastructure/mysql/repositoryimpl/user"
+	uh "layered-arch-sample/pkg/interfaces/api/handler/user"
 	"layered-arch-sample/pkg/interfaces/api/myerror"
+	uu "layered-arch-sample/pkg/usecase/user"
 	"log"
 	"net/http"
 
@@ -11,6 +16,15 @@ import (
 
 // Serve サーバー起動処理
 func Serve(addr string) {
+
+	// 依存性の注入
+	userRepoImpl := ur.NewRepositoryImpl(mysql.Conn)
+	userUseCase := uu.NewUseCase(userRepoImpl)
+	userHandler := uh.NewHandler(userUseCase)
+
+	echo.NotFoundHandler = func(c echo.Context) error {
+		return &myerror.NotFoundError{Err: fmt.Errorf("URL is invalid: (url=%s)", c.Request().URL)}
+	}
 	e := echo.New()
 	e.Use(
 		middleware.CORSWithConfig(middleware.CORSConfig{
@@ -20,6 +34,9 @@ func Serve(addr string) {
 		middleware.Logger(),
 		middleware.Recover(),
 	)
+	e.HTTPErrorHandler = errorHandler
+
+	e.POST("/signup", userHandler.HandleCreate)
 
 	log.Println("Server running...")
 	if err := e.Start(addr); err != nil {
