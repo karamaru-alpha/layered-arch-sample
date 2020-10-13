@@ -8,4 +8,5 @@ import (
 type Repository interface {
 	Create(ID, authToken, name string) error
 	SelectByAuthToken(authToken string) (*user.User, error)
+	UpdateName(user *user.User, name string) error
 }
