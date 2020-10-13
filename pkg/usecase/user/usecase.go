@@ -11,6 +11,7 @@ import (
 type UseCase interface {
 	Create(name string) (authToken string, err error)
 	SelectByAuthToken(authToken string) (user *um.User, err error)
+	UpdateName(user *um.User, name string) error
 }
 
 type useCase struct {
@@ -45,4 +46,8 @@ func (uu useCase) Create(name string) (string, error) {
 // SelectByAuthToken Userをトークンから取得するためのユースケース
 func (uu useCase) SelectByAuthToken(authToken string) (*um.User, error) {
 	return uu.repository.SelectByAuthToken(authToken)
+}
+
+func (uu useCase) UpdateName(user *um.User, name string) error {
+	return uu.repository.UpdateName(user, name)
 }
