@@ -3,7 +3,6 @@ package user
 import (
 	"fmt"
 	"layered-arch-sample/pkg/constant"
-	um "layered-arch-sample/pkg/domain/model/user"
 	"layered-arch-sample/pkg/interfaces/api/dcontext"
 	"layered-arch-sample/pkg/interfaces/api/myerror"
 	uu "layered-arch-sample/pkg/usecase/user"
@@ -33,11 +32,16 @@ func NewHandler(userUseCase uu.UseCase) Handler {
 
 // HandleCreate ユーザを作成するHandler
 func (uh handler) HandleCreate(c echo.Context) error {
-	type response struct {
-		Token string `json:"token"`
-	}
+	type (
+		request struct {
+			Name string `json:"name"`
+		}
+		response struct {
+			Token string `json:"token"`
+		}
+	)
 
-	requestBody := new(um.User)
+	requestBody := new(request)
 	if err := c.Bind(requestBody); err != nil {
 		return &myerror.InternalServerError{Err: err}
 	}
@@ -59,12 +63,17 @@ func (uh handler) HandleCreate(c echo.Context) error {
 
 // HandleGet ユーザー取得処理
 func (uh handler) HandleGet(c echo.Context) error {
+	type response struct {
+		ID   string `json:"id"`
+		Name string `json:"name"`
+	}
+
 	user := dcontext.GetUserFromContext(c)
 	if user == nil {
 		return &myerror.UnauthorizedError{Err: errors.New("user not found")}
 	}
 
-	return c.JSON(http.StatusOK, &um.User{
+	return c.JSON(http.StatusOK, &response{
 		ID:   user.ID,
 		Name: user.Name,
 	})
@@ -72,11 +81,16 @@ func (uh handler) HandleGet(c echo.Context) error {
 
 // HandleUpdate ユーザー更新処理
 func (uh handler) HandleUpdate(c echo.Context) error {
-	type response struct {
-		Message string `json:"message"`
-	}
+	type (
+		request struct {
+			Name string `json:"name"`
+		}
+		response struct {
+			Message string `json:"message"`
+		}
+	)
 
-	requestBody := new(um.User)
+	requestBody := new(request)
 	if err := c.Bind(requestBody); err != nil {
 		return &myerror.InternalServerError{Err: err}
 	}
