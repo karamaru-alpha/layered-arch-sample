@@ -4,6 +4,20 @@
 - 思想は以下 qiita 参照
   https://qiita.com/karamaru/items/74880b29a054bdeb356c
 
+## レイヤー
+
+### domain層
+ドメインモデルとリポジトリの定義
+
+### infrastructure層
+実際にDBと通信し、リポジトリに宣言されたドメインモデルの更新処理を実現する
+
+### usecase層
+アプリケーション固有のビジネスロジックを記述
+
+### interfaces層
+request/responseの送受信・バリデーションを行う
+
 ## エンドポイント
 
 ### POST /signup
